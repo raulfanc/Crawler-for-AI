@@ -4,15 +4,17 @@ import json
 import hashlib
 from datetime import timedelta
 from loguru import logger
+import os
 
 class CacheService:
     """Redis-based caching service for web scraping results"""
     
-    def __init__(self, redis_url: str = "redis://redis:6379"):
+    def __init__(self, redis_url: str = "redis://localhost:6379"):
         """Initialize cache service"""
         self.redis = None
         self.redis_url = redis_url
         self.default_ttl = timedelta(hours=24)  # Default cache TTL
+        self.cache_enabled = os.environ.get("CACHE_ENABLED", "True").lower() == "true"
 
     async def connect(self):
         """Establish Redis connection"""
@@ -56,6 +58,10 @@ class CacheService:
 
     async def get_cached_result(self, url: str, options: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Retrieve cached scraping result"""
+        if not self.cache_enabled:
+            logger.info("Caching is disabled. Skipping cache retrieval.")
+            return None
+
         if not self.redis:
             await self.connect()
             
@@ -77,6 +83,10 @@ class CacheService:
     async def cache_result(self, url: str, options: Dict[str, Any], 
                           result: Dict[str, Any], ttl: Optional[timedelta] = None) -> bool:
         """Cache scraping result"""
+        if not self.cache_enabled:
+            logger.info("Caching is disabled. Skipping cache storage.")
+            return False
+
         if not self.redis:
             await self.connect()
             
@@ -100,6 +110,10 @@ class CacheService:
 
     async def invalidate_cache(self, url: str, options: Dict[str, Any]) -> bool:
         """Invalidate cached result for specific URL and options"""
+        if not self.cache_enabled:
+            logger.info("Caching is disabled. Skipping cache invalidation.")
+            return False
+        
         if not self.redis:
             await self.connect()
             

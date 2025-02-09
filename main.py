@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -159,12 +159,12 @@ async def root():
     }
 
 @app.post("/scrape", response_model_exclude_none=True)
-async def scrape_url(request: ScrapeRequest, req: Request):
+async def scrape_url(request: ScrapeRequest, req: Request, wait_for_selector: str = Depends(lambda x: x)):
     """
-    Scrape a URL and return processed content
+    Scrape a URL and return processed content, with an optional wait_for_selector.
     """
     logger.info(f"Processing scrape request for URL: {request.url}")
-    
+
     options = {
         "only_main": request.onlyMainContent,
         "timeout": request.timeout or settings.TIMEOUT,
@@ -172,12 +172,12 @@ async def scrape_url(request: ScrapeRequest, req: Request):
         "headers": request.headers,
         "screenshot": True,
         "screenshot_quality": settings.SCREENSHOT_QUALITY,
-        "wait_for_selector": request.waitFor
+        "wait_for_selector": wait_for_selector or request.waitFor
     }
-    
+
     if request.actions:
         options["actions"] = request.actions
-    
+
     result = await req.app.state.scraper.scrape(str(request.url), options)
     return result
 

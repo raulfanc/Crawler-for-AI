@@ -22,7 +22,7 @@ class ScrapeRequest(BaseModel):
     includeTags: Optional[List[str]] = None
     excludeTags: Optional[List[str]] = None
     headers: Optional[Dict[str, str]] = None
-    waitFor: Optional[int] = None
+    waitFor: Optional[str] = None
     mobile: Optional[bool] = False
     skipTlsVerification: Optional[bool] = False
     timeout: Optional[int] = None
