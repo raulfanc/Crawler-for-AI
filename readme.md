@@ -25,7 +25,7 @@ cd eGet-Crawler-for-ai
 python -m venv venv
 
 # Activate on Linux/macOS
-source venv/bin/activate
+source .venv/bin/activate
 
 # Activate on Windows
 .\venv\Scripts\activate
@@ -38,7 +38,7 @@ pip install -r requirements.txt
 
 4. Run the API server:
 ```bash
-uvicorn api:app --reload
+uvicorn main:app --reload --port 8000
 ```
 
 The API will be accessible at `http://localhost:8000`.
