@@ -30,45 +30,35 @@ def scrape_page(url):
         print(f"An error occurred: {e}")
         return None
 
-def extract_links(markdown_content, base_url):
-    """Extracts and filters links from the markdown content."""
-    links = re.findall(r'\[.*?\]\((.*?)\)', markdown_content)
-    absolute_links = [urllib.parse.urljoin(base_url, link) for link in links]
-    # Keep only links within the SendGrid documentation
-    sendgrid_links = [link for link in absolute_links if link.startswith(base_url)]
-    return list(set(sendgrid_links)) # Remove duplicates
-
-
 def main():
-    """Crawls the SendGrid documentation, starting from the base URL."""
-    base_url = "https://www.twilio.com/docs/sendgrid/for-developers/parsing-email/inbound-email"
-    urls_to_scrape = [base_url]
-    scraped_urls = set()
-    output_dir = "send_grid"
+    """Scrapes a list of URLs and saves them to separate markdown files."""
+    urls = [
+        "https://www.twilio.com/docs/sendgrid/for-developers",
+        "https://www.twilio.com/docs/sendgrid/for-developers/sending-email/quickstart-python",
+        "https://www.twilio.com/docs/sendgrid/for-developers/partners/microsoft-azure-2021",
+        "https://www.twilio.com/docs/sendgrid/for-developers/tracking-events/getting-started-event-webhook",
+        "https://www.twilio.com/docs/sendgrid/for-developers/tracking-events/event",
+        "https://www.twilio.com/docs/sendgrid/api-reference/sendgrid-engagement-quality-api",
+        "https://www.twilio.com/docs/sendgrid/for-developers/parsing-email/setting-up-the-inbound-parse-webhook",
+        "https://www.twilio.com/docs/sendgrid/api-reference/settings-inbound-parse",
+    ]
 
+    output_dir = "send_grid"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    while urls_to_scrape:
-        current_url = urls_to_scrape.pop()
-        scraped_urls.add(current_url)
-
-        print(f"Scraping: {current_url}")
-        markdown_content = scrape_page(current_url)
+    for url in urls:
+        print(f"Scraping: {url}")
+        markdown_content = scrape_page(url)
 
         if markdown_content:
-            filename = current_url.split("/")[-1] + ".md"
+            filename = url.split("/")[-1] + ".md"
             if not filename:
                 filename = "index.md"
             filepath = os.path.join(output_dir, filename)
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(markdown_content)
             print(f"Saved to {filepath}")
-
-            new_links = extract_links(markdown_content, base_url)
-            for link in new_links:
-                if link not in scraped_urls and link not in urls_to_scrape:
-                    urls_to_scrape.append(link)
 
 if __name__ == "__main__":
     main()
